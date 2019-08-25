@@ -14,7 +14,11 @@ TABLE_SCALING = 1
 # Speed constants
 HORNET_MOVEMENT_SPEED = 5
 GRAVITY = 1
-HORNET_JUMP_SPEED = 15
+HORNET_JUMP_SPEED = 10
+
+# Game state
+GAME_OVER = 0
+PLAYING = 1
 
 
 class FlappyHornet(arcade.Window):
@@ -28,8 +32,16 @@ class FlappyHornet(arcade.Window):
         self.table_list = None
         self.score = None
         # Keep track of player sprite
-        self.hornet_sprite = None
+        # Set up the player hornet
+        self.hornet_sprite = arcade.AnimatedTimeSprite()
+              
+        # Load animated textures
+        self.hornet_sprite.textures = []
+        self.hornet_sprite.textures.append(arcade.load_texture("assets/images/wasp-0.png",scale=CHARACTER_SCALING))
+        self.hornet_sprite.textures.append(arcade.load_texture("assets/images/wasp-1.png",scale=CHARACTER_SCALING))
         
+        
+        self.state = None
         self.scroll_speed = None  # adjust difficulty?
         
         arcade.set_background_color(arcade.color.SKY_BLUE)
@@ -45,16 +57,21 @@ class FlappyHornet(arcade.Window):
         # Create sprite lists
         self.hornet_list = arcade.SpriteList()
         self.swatter_list = arcade.SpriteList()
-        self.table_list = arcade.SpriteList() # used for platforms
+        self.table_list = arcade.SpriteList() 
         
         self.scroll_speed = 2
         self.score = 0
+        self.state = PLAYING
         
         # Set up the player hornet
-        self.hornet_sprite = arcade.Sprite("assets/images/wasp-0.png", CHARACTER_SCALING)
+        
         self.hornet_sprite.center_x = 64
         self.hornet_sprite.center_y = SCREEN_HEIGHT // 2
+        
+              
+        # Put sprite into list to be drawn
         self.hornet_list.append(self.hornet_sprite)
+        
         
         # add ground
         for x in range(0,2000,64):
@@ -71,15 +88,17 @@ class FlappyHornet(arcade.Window):
         
         # add swatters        
         for x in range(300, 10000, 400):
-            bottom_y = random.randint(0,300)
+            bottom_y = random.randint(0,200)
             bottom_swatter = arcade.Sprite("assets/images/swatter.png", SWATTER_SCALING)
             bottom_swatter.center_x = x
             bottom_swatter.center_y = bottom_y
             bottom_swatter.angle = 180
+            bottom_swatter.scored = False
             self.swatter_list.append(bottom_swatter)
             top_swatter = arcade.Sprite("assets/images/swatter.png", SWATTER_SCALING)
             top_swatter.center_x = x
-            top_swatter.center_y = bottom_y + 700
+            top_swatter.center_y = bottom_y + 800
+            top_swatter.scored = False
             self.swatter_list.append(top_swatter)
             
         
@@ -99,14 +118,20 @@ class FlappyHornet(arcade.Window):
         self.hornet_list.draw()
         self.swatter_list.draw()
         
+        score_text = f"Score: {int(self.score)}"
+        arcade.draw_text(score_text, SCREEN_WIDTH - 100, SCREEN_HEIGHT - 40, arcade.color.MAROON,18)
+        
     
     def on_key_press(self, key, modifiers):
         """
         Called whenever a key is pressed.
         """
-        if key == arcade.key.SPACE:
+        if key == arcade.key.SPACE and self.state == PLAYING:
             self.hornet_sprite.change_y = HORNET_JUMP_SPEED
         
+        if key == arcade.key.R and self.state == GAME_OVER:
+            self.setup()
+            
     
     def on_key_release(self, key, modifiers):
         """
@@ -115,26 +140,38 @@ class FlappyHornet(arcade.Window):
         if key == arcade.key.SPACE:
             self.hornet_sprite.change_y = 0
             
+    def on_mouse_press(self, x, y, button, modifiers):
+        """
+        Called when mouse button clicked
+        """
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            self.hornet_sprite.change_y = HORNET_JUMP_SPEED
+    
     
     def update(self, delta_time):
         """
         Movement and game logic
         """
+        self.hornet_list.update_animation()
         
-        for swatter in self.swatter_list:
-            swatter.center_x -= self.scroll_speed
-            if swatter.center_x <= self.hornet_sprite.center_x:
-                self.score += 0.5
-                self.swatter_list.remove(swatter)
-                print(self.score)
-        self.physics_engine.update()
-        
-        for swatter in self.swatter_list:
-            if swatter.collides_with_sprite(self.hornet_sprite):
-                print(swatter.collision_radius)
-                print(self.hornet_sprite.collision_radius)
-                print("GAME OVER")
-                arcade.pause(.5)
+        if self.state == PLAYING:
+            for swatter in self.swatter_list:
+                swatter.center_x -= self.scroll_speed
+                if swatter.center_x <= self.hornet_sprite.center_x and not swatter.scored:
+                    self.score += 0.5
+                    swatter.scored = True
+                    print(self.score)
+                    
+                if swatter.center_x <= -100: # off screen?
+                     self.swatter_list.remove(swatter)
+            self.physics_engine.update()
+            
+            for swatter in self.swatter_list:
+                if swatter.collides_with_sprite(self.hornet_sprite):
+                    if swatter.center_y + swatter.collision_radius > self.hornet_sprite.center_y - self.hornet_sprite.collision_radius:
+                        self.state = GAME_OVER
+                        print("GAME OVER")
+            
                 
 
 def main():
