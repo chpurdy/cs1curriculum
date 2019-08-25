@@ -37,7 +37,7 @@ Open [hello.py](hello.py) in Thonny.  Watch the [explanation video](#).
 *NOT SURE*
 
 
-## Day 3
+## Day 3 - 4
 Create a new program called *letter.py* in Thonny.  This program should use
 the `print` function to print out a letter to a classmate about what you did this summer.  Each line printed 
 should be no more than 79 characters (including spaces and punctuation), but as close to 79 as possible.
@@ -56,4 +56,5 @@ Example letter:
 ![](./images/letter.png)
 
 
-## Day 4
+## Day 5
+
