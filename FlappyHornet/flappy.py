@@ -1,6 +1,8 @@
 import arcade
 import random
 # wasp art from https://opengameart.org/content/wasp-0
+# swat and jump sound effect Recorded by Mike Koenig @ http://soundbible.com
+# score sound recorded by Corsica @ http://soundbible.com/1424-Air-Plane-Ding.html
 
 SCREEN_WIDTH = 500
 SCREEN_HEIGHT = 800
@@ -39,6 +41,11 @@ class FlappyHornet(arcade.Window):
         self.hornet_sprite.textures = []
         self.hornet_sprite.textures.append(arcade.load_texture("assets/images/wasp-0.png",scale=CHARACTER_SCALING))
         self.hornet_sprite.textures.append(arcade.load_texture("assets/images/wasp-1.png",scale=CHARACTER_SCALING))
+        
+        # Load sounds
+        self.swat_sound = arcade.load_sound("assets/sounds/swat.mp3")
+        self.jump_sound = arcade.load_sound("assets/sounds/jump.mp3")
+        self.score_sound = arcade.load_sound("assets/sounds/score.mp3")
         
         
         self.state = None
@@ -144,8 +151,11 @@ class FlappyHornet(arcade.Window):
         """
         Called when mouse button clicked
         """
-        if button == arcade.MOUSE_BUTTON_LEFT:
+        if button == arcade.MOUSE_BUTTON_LEFT and self.state == PLAYING:
             self.hornet_sprite.change_y = HORNET_JUMP_SPEED
+            self.jump_sound.play()
+            
+            
     
     
     def update(self, delta_time):
@@ -160,6 +170,8 @@ class FlappyHornet(arcade.Window):
                 if swatter.center_x <= self.hornet_sprite.center_x and not swatter.scored:
                     self.score += 0.5
                     swatter.scored = True
+                    if self.score == int(self.score):
+                        self.score_sound.play()
                     print(self.score)
                     
                 if swatter.center_x <= -100: # off screen?
@@ -169,6 +181,7 @@ class FlappyHornet(arcade.Window):
             for swatter in self.swatter_list:
                 if swatter.collides_with_sprite(self.hornet_sprite):
                     if swatter.center_y + swatter.collision_radius > self.hornet_sprite.center_y - self.hornet_sprite.collision_radius:
+                        self.swat_sound.play()
                         self.state = GAME_OVER
                         print("GAME OVER")
             
