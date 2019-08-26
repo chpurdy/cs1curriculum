@@ -21,6 +21,7 @@ HORNET_JUMP_SPEED = 10
 # Game state
 GAME_OVER = 0
 PLAYING = 1
+START = 2
 
 
 class FlappyHornet(arcade.Window):
@@ -68,7 +69,7 @@ class FlappyHornet(arcade.Window):
         
         self.scroll_speed = 2
         self.score = 0
-        self.state = PLAYING
+        self.state = START
         
         # Set up the player hornet
         
@@ -128,6 +129,13 @@ class FlappyHornet(arcade.Window):
         score_text = f"Score: {int(self.score)}"
         arcade.draw_text(score_text, SCREEN_WIDTH - 100, SCREEN_HEIGHT - 40, arcade.color.MAROON,18)
         
+        if self.state == START:
+            arcade.draw_text("Welcome to Flappy Hornet!",SCREEN_WIDTH//4, SCREEN_HEIGHT//2+100, arcade.color.MAROON,20)
+            arcade.draw_text("Press 'R' to begin the game",SCREEN_WIDTH//4, SCREEN_HEIGHT//2+50, arcade.color.MAROON,20)
+            
+        if self.state == GAME_OVER:
+            arcade.draw_text("Press 'R' to restart",SCREEN_WIDTH//4, SCREEN_HEIGHT//2+50, arcade.color.MAROON,20)
+        
     
     def on_key_press(self, key, modifiers):
         """
@@ -138,6 +146,9 @@ class FlappyHornet(arcade.Window):
         
         if key == arcade.key.R and self.state == GAME_OVER:
             self.setup()
+            
+        if key == arcade.key.R and self.state == START:
+            self.state = PLAYING
             
     
     def on_key_release(self, key, modifiers):
@@ -163,6 +174,8 @@ class FlappyHornet(arcade.Window):
         Movement and game logic
         """
         self.hornet_list.update_animation()
+        
+        
         
         if self.state == PLAYING:
             for swatter in self.swatter_list:
