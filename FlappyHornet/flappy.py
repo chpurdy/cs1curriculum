@@ -1,5 +1,6 @@
 import arcade
 import random
+from message_box_test import MessageBox
 # wasp art from https://opengameart.org/content/wasp-0
 # swat and jump sound effect Recorded by Mike Koenig @ http://soundbible.com
 # score sound recorded by Corsica @ http://soundbible.com/1424-Air-Plane-Ding.html
@@ -40,13 +41,14 @@ class FlappyHornet(arcade.Window):
               
         # Load animated textures
         self.hornet_sprite.textures = []
-        self.hornet_sprite.textures.append(arcade.load_texture("assets/images/wasp-0.png",scale=CHARACTER_SCALING))
-        self.hornet_sprite.textures.append(arcade.load_texture("assets/images/wasp-1.png",scale=CHARACTER_SCALING))
+        self.hornet_sprite.textures.append(arcade.load_texture("assets/images/wasp-0.png"))
+        self.hornet_sprite.textures.append(arcade.load_texture("assets/images/wasp-1.png"))
         
         # Load sounds
         self.swat_sound = arcade.load_sound("assets/sounds/swat.mp3")
         self.jump_sound = arcade.load_sound("assets/sounds/jump.mp3")
         self.score_sound = arcade.load_sound("assets/sounds/score.mp3")
+        self.bg_song = arcade.load_sound("assets/sounds/bgsong.mp3")
         
         
         self.state = None
@@ -70,6 +72,7 @@ class FlappyHornet(arcade.Window):
         self.scroll_speed = 2
         self.score = 0
         self.state = START
+        self.bg_song.play(.25)
         
         # Set up the player hornet
         
@@ -114,7 +117,11 @@ class FlappyHornet(arcade.Window):
                                                              self.table_list,
                                                              GRAVITY)
         
-        
+        self.message_boxes = []
+        start_message_box = MessageBox("Welcome to Flappy Hornet!\nClick to Start", SCREEN_WIDTH/2, SCREEN_HEIGHT/2, arcade.color.RED, True)
+        self.replay_message_box = MessageBox("Click to Play Again!",SCREEN_WIDTH/2, SCREEN_HEIGHT/2, arcade.color.RED, False)
+        self.message_boxes.append(start_message_box)
+        self.message_boxes.append(self.replay_message_box)
         
     def on_draw(self):
         """
@@ -133,8 +140,15 @@ class FlappyHornet(arcade.Window):
             arcade.draw_text("Welcome to Flappy Hornet!",SCREEN_WIDTH//4, SCREEN_HEIGHT//2+100, arcade.color.MAROON,20)
             arcade.draw_text("Press 'R' to begin the game",SCREEN_WIDTH//4, SCREEN_HEIGHT//2+50, arcade.color.MAROON,20)
             
+            
+            
         if self.state == GAME_OVER:
             arcade.draw_text("Press 'R' to restart",SCREEN_WIDTH//4, SCREEN_HEIGHT//2+50, arcade.color.MAROON,20)
+            
+        
+        for message_box in self.message_boxes:
+            if message_box.is_visible:
+                message_box.draw()
         
     
     def on_key_press(self, key, modifiers):
@@ -165,7 +179,12 @@ class FlappyHornet(arcade.Window):
         if button == arcade.MOUSE_BUTTON_LEFT and self.state == PLAYING:
             self.hornet_sprite.change_y = HORNET_JUMP_SPEED
             self.jump_sound.play()
-            
+        
+        for message_box in self.message_boxes:
+            if message_box.is_visible:
+                if message_box.check_clicked(x,y) and self.state != PLAYING:
+                    self.state = PLAYING
+                    message_box.is_visible = False
             
     
     
@@ -195,7 +214,9 @@ class FlappyHornet(arcade.Window):
                 if swatter.collides_with_sprite(self.hornet_sprite):
                     if swatter.center_y + swatter.collision_radius > self.hornet_sprite.center_y - self.hornet_sprite.collision_radius:
                         self.swat_sound.play()
+                        self.bg_song.stop()
                         self.state = GAME_OVER
+                        self.replay_message_box.is_visible = True
                         print("GAME OVER")
             
                 

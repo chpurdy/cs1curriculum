@@ -8,7 +8,7 @@ arcade.set_background_color(arcade.color.SKY_BLUE)
 
 def draw_outdoors():
     # draw ground
-    arcade.draw_lrtb_rectangle_filled(0,600,150,0,arcade.color.GREEN)
+    arcade.draw_lrtb_rectangle_filled(0,600,100,0,arcade.color.GREEN)
 
     # draw sun
     arcade.draw_circle_filled(0,600,100,arcade.color.YELLOW)
